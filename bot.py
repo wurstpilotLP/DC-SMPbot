@@ -20,7 +20,11 @@ tree = app_commands.CommandTree(client)
 
 # Benötigte Methoden
 
-
+@tree.command(name="edit-mc-name", description="Edit or put in your exact minecraft name to register for the oline-status-page-levae a blanket to delete your entry")
+async def editname(interaction=discord.Interaction,mcname:str):
+    if mcname=="":
+        
+    
 
 
 
