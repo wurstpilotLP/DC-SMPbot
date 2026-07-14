@@ -6,10 +6,21 @@ from discord.ext import tasks
 import asyncio
 import sqlite
 
-# Needed Variablen
+# Needed Variables
 from config import TOKEN
 import globals
 import IDs
+
+# Everything about the Database
+
+# Set up the Connection
+connection = sqlite.connect("playernames.db")
+
+# Set up a cursor to read and edit the table
+cursor = connection.cursor()
+
+# Create the Table (used only once with the first start of the Bot)
+cursor.execute("""CREATE TABLE IF NOT EXISTS mc_names (userid INTEGER, mcname TEXT)""")
 
 # Intents
 
