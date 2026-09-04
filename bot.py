@@ -51,7 +51,7 @@ async def on_member_join(member: discord.Member):
     member_id= member.id
     welcomechannel=bot.get_Channel(IDs.welcome_channel_id)
     await welcomechannel.send(f"Hallo und Herzlich wilkommen <@{member_id}>! Dies ist dein Ort, um dich mit den anderen Mitgliedern auszutauschen, Handel zu betreiben, usw. Bitte füge auch deinen MC Namen mit /edit-mc-name hinzu, damit andere sehen können, ob du online bist.")
-    # edit the Text of the welcome-message in the format wlcomechannel.send(f"place your text")
+    # edit the Text of the welcome-message in the format welcomechannel.send(f"place your text")
     # if you want to mention the user, just write <@{member_id}> directly into your text.
 
 @bot.event
@@ -72,6 +72,7 @@ async def on_ready():
 
 @tasks.loop(minutes=5)
 async def abfrage_online_player():
-    
+    await request_json()
+    await
 
 bot.run(TOKEN)
