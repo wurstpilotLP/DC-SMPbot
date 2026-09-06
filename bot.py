@@ -1,5 +1,4 @@
 # Needed Libraries
-
 import discord
 from discord import app_commands
 from discord.ext import tasks
@@ -11,13 +10,16 @@ from config import TOKEN
 import globals
 import IDs
 
+#Needed methods
+from mcrequests import request_member_status
+
 # Everything about the Database
 
 # Set up the Connection
 connection = sqlite.connect("playernames.db")
 
 # Set up a cursor to read and edit the table
-cursor = connection.cursor()
+globals.cursor = connection.cursor()
 
 # Create the Table (used only once with the first start of the Bot)
 cursor.execute("""CREATE TABLE IF NOT EXISTS list_mc_names (userid INTEGER, mcname TEXT)""")
@@ -72,7 +74,12 @@ async def on_ready():
 
 @tasks.loop(minutes=5)
 async def abfrage_online_player():
-    await request_json()
-    await
+    online_members = await request_member_status
+    if online_members:
+        
+        embed=get_embed_(player_list_string)
+    else
+        
+    
 
 bot.run(TOKEN)

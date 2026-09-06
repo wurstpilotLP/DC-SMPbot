@@ -1,1 +1,0 @@
-const TOKEN="Insert your token here"

@@ -12,7 +12,7 @@ async def get_player_list():
     raw_data = await get_player_data()                                       #get every information about every player available
     return [player["name"] for player in raw_data["players"]]                #filter out just the names and save them in a list
 
-async def request_player_status(saved_names):
+async def request_member_status(saved_names):
     online_player = await get_player_list()          #get the online players from the methods below
     online_members = []                              #make a new list where every players name who is registered in the bot and oline is saved
     for player in saved_names:                       #go through all saved names
