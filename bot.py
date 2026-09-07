@@ -1,28 +1,28 @@
 # Needed Libraries
 import discord
+import sqlalchemy
+from dotenv import load_dotenv
+# Needed Variables
+
 from discord import app_commands
 from discord.ext import tasks
-import asyncio
-import sqlite
 
-# Needed Variables
-from config import TOKEN
-import globals
+
 import IDs
-
-#Needed methods
+import globals
+# Needed methods
 from mcrequests import request_member_status
 
 # Everything about the Database
 
 # Set up the Connection
-connection = sqlite.connect("playernames.db")
+connection = sqlalchemy.connect("playernames.db")
 
 # Set up a cursor to read and edit the table
 globals.cursor = connection.cursor()
 
 # Create the Table (used only once with the first start of the Bot)
-cursor.execute("""CREATE TABLE IF NOT EXISTS list_mc_names (userid INTEGER, mcname TEXT)""")
+globals.cursor.execute("""CREATE TABLE IF NOT EXISTS list_mc_names (userid INTEGER, mcname TEXT)""")
 
 # Intents
 
@@ -30,8 +30,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-client = discord.Client(intents=intents)
-tree = app_commands.CommandTree(client)
+bot = discord.Client(intents=intents)
+tree = app_commands.CommandTree(bot)
 
 
 # Needed Methods
@@ -78,7 +78,10 @@ async def abfrage_online_player():
     if online_members:
         
         embed=get_embed_(player_list_string)
-    else
+    else:
+        embed=get_embed_no_members()
+
+    activity_channel=
         
     
 
