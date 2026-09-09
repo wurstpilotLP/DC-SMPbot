@@ -1,7 +1,8 @@
 # Needed Libraries
 import discord
-import sqlalchemy
+
 from dotenv import load_dotenv
+
 # Needed Variables
 
 from discord import app_commands
@@ -12,17 +13,6 @@ import IDs
 import globals
 # Needed methods
 from mcrequests import request_member_status
-
-# Everything about the Database
-
-# Set up the Connection
-connection = sqlalchemy.connect("playernames.db")
-
-# Set up a cursor to read and edit the table
-globals.cursor = connection.cursor()
-
-# Create the Table (used only once with the first start of the Bot)
-globals.cursor.execute("""CREATE TABLE IF NOT EXISTS list_mc_names (userid INTEGER, mcname TEXT)""")
 
 # Intents
 
