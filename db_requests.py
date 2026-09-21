@@ -1,27 +1,42 @@
-import sqlite
-from globals import cursor
-import sqlalchemy.orm as db_lib
+import sqlalchemy as db_lib
+import db_config as db
+from db_config import Base
 
-
-class Base (db_lib.DeclarativeBase):
-    pass
-
-class Member(Base):
-    __tablename__ = "list_mc_names"
-
-    userid: db_lib.Mapped[int] = db_lib.Column(db_lib.Integer, primary_key=True)
-    mcname: db_lib.Mapped[str] = db_lib.Column(db_lib.Integer, Nullable=True)
 
 async def new_member_entry(userid):
-    pass
+    async with db.SessionLocal() as session:
+
+        new_entry = db.Base(userid=userid)
+        await session.add(new_entry)
+
+        await session.commit()
 
 async def change_mcname(userid, mcname):
-    pass
+    async with db.SessionLocal() as session:
+        search_statement = db_lib.select(db.Member).where(db.Member.userid == userid)
+
+        searched_user = await session.execute(search_statement)
+
+        if searched_user == None:
+            return
+
 
 async def get_mcname(userid):
-    pass
+    async with db.SessionLocal() as session:
+        search_statement = db_lib.select(db.Member).where(db.Member.userid == userid)
+
+        result = await session.execute(search_statement)
+
+        searched_user = result.scalar_one_or_none()
+
+        if searched_user is not None:
+            if searched_user.mcname != None:
+                return searched_user.mcname
+            else:
+                return ""
+        else:
+            return None
+
 
 async def get_known_players():
-    cursor.execute("SELECT mcname FROM userid")
-    all_players=cursor.fetchall()
-    return [line[0] for line in all_players]
+    pass
