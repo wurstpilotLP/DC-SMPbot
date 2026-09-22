@@ -6,9 +6,11 @@ import dotenv
 
 import IDs
 import globals
+from globals import bot
 
 # Needed methods
 from db_config import init_db
+import db_requests
 
 # Intents
 
@@ -25,34 +27,32 @@ tree = discord.app_commands.CommandTree(bot)
 @tree.command(name="edit-mc-name",
               description="Edit or put in your exact minecraft name to register for the oline-status-page-levae a blanket to delete your entry")
 async def editname(interaction=discord.Interaction, mcname: str):
-    if mcname != "":
-        user_id = interaction.user.id()
-        cursor.execute("""INSERT OR REPLACE INTO list_mc_names(userid,mcname) VALUES(?,?)""", (user_id, mcname))
-        await interaction.response(f"Your MC name was successfully set to {mcname}")
-        ephemeral = True
-    else:
-        await interaction.response("Error: Please fill in your MC Name!")
-        ephemeral = True
+    pass
 
 
 @bot.event
 async def on_member_join(member: discord.Member):
-    member_id = member.id
-    welcomechannel = bot.get_Channel(IDs.welcome_channel_id)
-    await welcomechannel.send(
-        f"Hallo und Herzlich wilkommen <@{member_id}>! Dies ist dein Ort, um dich mit den anderen Mitgliedern auszutauschen, Handel zu betreiben, usw. Bitte füge auch deinen MC Namen mit /edit-mc-name hinzu, damit andere sehen können, ob du online bist.")
-    # edit the Text of the welcome-message in the format welcomechannel.send(f"place your text")
-    # if you want to mention the user, just write <@{member_id}> directly into your text.
+    welcome_channel = bot.get_Channel(IDs.welcome_channel_id)
+    await welcome_channel.send(
+        f"Hallo und Herzlich wilkommen <@{member.id}>! Dies ist dein Ort, um dich mit den anderen Mitgliedern auszutauschen, Handel zu betreiben, usw. Bitte füge auch deinen MC Namen mit /edit-mc-name hinzu, damit andere sehen können, ob du online bist.")
+
+    service_channel = bot.get_channel(IDs.service_channel_id)
+
+    if await db_requests.new_member_entry(member.id):
+        await service_channel.send(f"The User {member.name} was added successfully!")
+    else:
+        await service_channel.send(f"The User {member.name} already existed in the database! Please contact the support!")
 
 # region userverlassen
 @bot.event
 async def on_member_remove(member: discord.Member):
-    welcomechannel = bot.get_Channel(IDs.welcome_channel_id)
-    await welcomechannel.send(f"Der User {member.name} hat uns leider verlassen! Wir wünschen ihm weiter alles Gute!")
-    # here, you can also edit the leave-message by typing welcomechannel.send(f"put your text here")
-    # to put the name of the user who left into this message, just write {member.name} into the text
-
-    cursor.execute("DELETE FROM list_mc_names WHERE userid=?", (member.id,))
+    welcome_channel = bot.get_Channel(IDs.welcome_channel_id)
+    service_channel = bot.get_channel(IDs.service_channel_id)
+    await welcome_channel.send(f"Unfortunately, the user {member.name} left us! We wish him all the best for the future!")
+    if await db_requests.delete_member(member.id):
+        await service_channel.send(f"The User {member.name} was deleted successfully!")
+    else:
+        await service_channel.send(f"The User {member.name} never existed in the database! please contact the support!")
 # endregion
 
 @bot.event
