@@ -1,2 +1,1 @@
 bot = None
-cursor = None
