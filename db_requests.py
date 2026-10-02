@@ -12,14 +12,20 @@ async def get_user(userid):
             return None
 
 async def new_member_entry(userid):
-    if await get_user(userid) is not None:
+    if await get_user(userid) is None:
+
         async with db.SessionLocal() as session:
 
             new_entry = db.Member(userid=userid)
-            await session.add(new_entry)
+
+            session.add(new_entry)
 
             await session.commit()
-            return True
+
+            if new_entry:
+                return True
+            else:
+                return False
     else:
         return False
 
@@ -27,7 +33,7 @@ async def change_mcname(userid, mcname):
     if mcname == "":
         return False
     else:
-        async with db.SessionLocal() as session:
+        async with (db.SessionLocal() as session):
             search_statement = db_lib.select(db.Member).where(db.Member.userid == userid)
 
             result = await session.execute(search_statement)
@@ -70,11 +76,15 @@ async def delete_member(userid):
 async def get_known_players():
     async with db.SessionLocal() as session:
 
-        search_statement = db_lib.select(db.Member.mcname).where(db.Member.mcname is not None)
-        result = await session.execute(search_statement)
-        unpacked_names = result.scalars()
+        search_statement = db_lib.select(db.Member.mcname).where(db.Member.mcname.is_not(None))
+
+        unpacked_names = await session.scalars(search_statement)
+
         list_mcnames = list(unpacked_names.all())
+
         if list_mcnames:
+
             return list_mcnames
         else:
+
             return None
