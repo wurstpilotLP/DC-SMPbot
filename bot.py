@@ -36,15 +36,23 @@ dotenv.load_dotenv()
 @tree.command(name="delete-user-manual", description="Delete user manually.")
 #@app_commands.checks.has_permissions(administrator=False)
 async def delete_user_manual(interaction: discord.Interaction, member: discord.Member):
+
     service_channel = bot.get_channel(IDs.service_channel_id)
     userid = member.id
+
     if await db_requests.delete_member(userid):
-        await service_channel.send(f"The User {member.name} was deleted successfully!")
-        await interaction.response.send_message(f"The User {member.name} was deleted successfully!", ephemeral=True)
+
+        embed = await embeds.get_member_deleted_embed(member.name)
+
+        await service_channel.send(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
     else:
-        await service_channel.send(f"The User {member.name} never existed in the database! please contact support!")
-        await interaction.response.send_message(
-            f"The User {member.name} never existed in the database! please contact support!", ephemeral=True)
+
+        embed = await embeds.get_member_deleted_error_embed(member.name)
+
+        await service_channel.send(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 @tree.command(name="add-user-manual", description="Add user manually.")
 #@app_commands.checks.has_permissions(administrator=False)
@@ -52,35 +60,43 @@ async def add_user_manual(interaction: discord.Interaction, member: discord.Memb
     service_channel = bot.get_channel(IDs.service_channel_id)
     userid = member.id
     if await db_requests.new_member_entry(userid):
-        await service_channel.send(f"The User {member.name} was added successfully!")
-        await interaction.response.send_message(f"The User {member.name} was added successfully!", ephemeral=True)
+        embed = await embeds.get_new_member_entry_embed(member.name)
+        await service_channel.send(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
     else:
-        await service_channel.send(f"The User {member.name} already existed in the database! Please contact support!")
-        await interaction.response.send_message(
-            f"The User {member.name} already existed in the database! Please contact support!", ephemeral=True)
+        embed = await embeds.get_new_member_entry_error_embed(member.name)
+        await service_channel.send(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 @tree.command(name="edit-name-manual", description="Edit the Minecraft name of another user.")
 #@app_commands.checks.has_permissions(administrator=False)
 async def edit_name_manual(interaction: discord.Interaction, member: discord.Member, mcname: str):
+
     service_channel = bot.get_channel(IDs.service_channel_id)
     answer = await db_requests.change_mcname(member.id, mcname)
+
     if answer:
-        await interaction.response.send_message(f"The Minecraft name {mcname} was successfully updated!",ephemeral=True)
+        embed = await embeds.get_mcname_changed_embed(mcname,member.name)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
     else:
-        await interaction.response.send_message("There is no valid Minecraft name!", ephemeral=True)
+        embed = await embeds.get_mcname_changed_error_embed(mcname,member.name)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 #region permission_error_handler
 @add_user_manual.error
 async def add_user_manual_error(interaction: discord.Interaction, error: app_commands.MissingPermissions):
-    await interaction.response.send_message(f"{error}You have no permission for that command!", ephemeral=True)
+    embed = await embeds.get_error_embed(error)
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 
 @edit_name_manual.error
 async def edit_name_manual_error(interaction: discord.Interaction, error: app_commands.MissingPermissions):
-    await interaction.response.send_message("You have no permission for that command!", ephemeral=True)
+    embed = await embeds.get_error_embed(error)
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 
 @delete_user_manual.error
 async def delete_user_manual_error(interaction: discord.Interaction, error: app_commands.MissingPermissions):
-    await interaction.response.send_message(f"{error}You have no permission for that command!", ephemeral=True)
+    embed = await embeds.get_error_embed(error)
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 #endregion
 #endregion
 
@@ -88,39 +104,42 @@ async def delete_user_manual_error(interaction: discord.Interaction, error: app_
               description="Edit or put in your exact minecraft name to register it. Leave a blank to delete your entry.")
 async def editname(interaction: discord.Interaction, mcname: str):
     answer = await db_requests.change_mcname(interaction.user.id, mcname)
-    if answer == True:
-        await interaction.response.send_message(f"The Minecraft name {mcname} was successfully updated!", ephemeral=True)
+    if answer:
+        embed = await embeds.get_mcname_changed_embed(mcname,interaction.user.name)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
     else:
-        await interaction.response.send_message("There is no valid Minecraft name!",ephemeral=True)
+        embed = await embeds.get_mcname_changed_error_embed(mcname,interaction.user.name)
+        await interaction.response.send_message(embed=embed,ephemeral=True)
 
+#region join_leave
 
 @bot.event
 async def on_member_join(member: discord.Member):
     welcome_channel = bot.get_channel(IDs.welcome_channel_id)
-    await welcome_channel.send(
-        f"Hallo und Herzlich wilkommen <@{member.id}>! Dies ist dein Ort, um dich mit den anderen Mitgliedern auszutauschen, Handel zu betreiben, usw. Bitte füge auch deinen MC Namen mit /edit-mc-name hinzu, damit andere sehen können, ob du online bist.")
+    welcome_embed = await embeds.get_member_joined_embed(member)
+    await welcome_channel.send(embed=welcome_embed)
 
     service_channel = bot.get_channel(IDs.service_channel_id)
 
     if await db_requests.new_member_entry(member.id):
-        await service_channel.send(f"The User {member.name} was added successfully!")
+        adding_embed = await embeds.get_new_member_entry_embed(member.name)
+        await service_channel.send(embed=adding_embed)
     else:
-        await service_channel.send(
-            f"The User {member.name} already existed in the database! Please contact the support!")
+        adding_embed = await embeds.get_new_member_entry_error_embed(member.name)
+        await service_channel.send(embed=adding_embed)
 
-
-# region userverlassen
 @bot.event
 async def on_member_remove(member: discord.Member):
     welcome_channel = bot.get_channel(IDs.welcome_channel_id)
     service_channel = bot.get_channel(IDs.service_channel_id)
-    await welcome_channel.send(
-        f"Unfortunately, the user {member.name} left us! We wish him all the best for the future!")
+    leaved_embed = await embeds.get_member_left_embed(member)
+    await welcome_channel.send(embed=leaved_embed)
     if await db_requests.delete_member(member.id):
-        await service_channel.send(f"The User {member.name} was deleted successfully!")
+        deleted_embed = await embeds.get_member_deleted_embed(member.name)
+        await service_channel.send(embed=deleted_embed)
     else:
-        await service_channel.send(f"The User {member.name} never existed in the database! please contact support!")
-
+        deleted_embed = await embeds.get_member_deleted_error_embed(member.name)
+        await service_channel.send(embed=deleted_embed)
 
 # endregion
 
